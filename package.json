@@ -1,0 +1,23 @@
+{
+    "name": "camera-manager",
+    "version": "1.0.0",
+    "description": "Sistema de gerenciamento de câmeras RTSP para transmissão no YouTube",
+    "main": "app.js",
+    "scripts": {
+      "start": "node app.js",
+      "dev": "nodemon app.js",
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "ejs": "^3.1.9",
+      "express": "^4.18.2",
+      "express-session": "^1.17.3",
+      "ping": "^0.4.4",
+      "socket.io": "^4.7.2"
+    },
+    "devDependencies": {
+      "nodemon": "^3.0.1"
+    }
+  }

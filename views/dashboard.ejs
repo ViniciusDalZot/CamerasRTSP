@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Câmeras RTSP</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+  <style>
+   
+  </style>
+</head>
+<body>
+    
+   <!-- Cabeçalho -->
+   <header class="header">
+    <div class="header-container">
+      <div class="logo">
+        <svg class="logo-icon"><use xlink:href="#camera-icon"></use></svg>
+        <h1>RTSP Camera Manager</h1>
+      </div>
+    </div>
+  </header>
+ <!-- SVG Sprite para ícones -->
+ <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="camera-icon" viewBox="0 0 24 24">
+      <path d="M5 5h-3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2v-12c0-1.1-.9-2-2-2h-3l-1-2h-10l-1 2zm9 13c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5z"/>
+      <circle cx="14" cy="13" r="3"/>
+    </symbol>
+    <symbol id="play-icon" viewBox="0 0 24 24">
+      <path d="M8 5v14l11-7z"/>
+    </symbol>
+    <symbol id="stop-icon" viewBox="0 0 24 24">
+      <path d="M6 6h12v12H6z"/>
+    </symbol>
+    <symbol id="edit-icon" viewBox="0 0 24 24">
+      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+    </symbol>
+    <symbol id="log-icon" viewBox="0 0 24 24">
+      <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+    </symbol>
+    <symbol id="delete-icon" viewBox="0 0 24 24">
+      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+    </symbol>
+    <symbol id="ip-icon" viewBox="0 0 24 24">
+      <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM9 10h2v7H9zm4-3h2v10h-2zm-8 6h2v4H5z"/>
+    </symbol>
+    <symbol id="user-icon" viewBox="0 0 24 24">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </symbol>
+    <symbol id="signal-icon" viewBox="0 0 24 24">
+      <path d="M2 22h20V2z"/>
+    </symbol>
+    <symbol id="location-icon" viewBox="0 0 24 24">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </symbol>
+    <symbol id="add-icon" viewBox="0 0 24 24">
+      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+    </symbol>
+    <symbol id="logout-icon" viewBox="0 0 24 24">
+      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+    </symbol>
+    <symbol id="youtube-icon" viewBox="0 0 24 24">
+      <path d="M10 15L15 12L10 9V15Z"/>
+      <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V6H20V18Z"/>
+    </symbol>
+    <symbol id="health-icon" viewBox="0 0 24 24">
+      <path d="M12 2C8.43 2 5.23 3.54 3.01 6L12 22l8.99-16C18.78 3.55 15.57 2 12 2zm0 15.92L5.51 6.36C7.32 4.85 9.62 4 12 4s4.68.85 6.49 2.36L12 17.92z"/>
+    </symbol>
+    <symbol id="server-icon" viewBox="0 0 24 24">
+      <path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/>
+    </symbol>
+    <symbol id="dashboard-icon" viewBox="0 0 24 24">
+      <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+    </symbol>
+  </svg>
+
+  
+   <!-- Barra de navegação -->
+   <nav class="nav">
+    <div class="nav-container">
+      <div class="nav-links">
+        <a href="/">
+            <svg width="16" height="16"><use xlink:href="#camera-icon"></use></svg>
+            Câmeras
+          </a>
+        <a href="/add_camera">
+          <svg width="16" height="16"><use xlink:href="#add-icon"></use></svg>
+          Adicionar Câmera
+        </a>
+        <a href="/dashboard" class="active">
+          <svg width="16" height="16"><use xlink:href="#dashboard-icon"></use></svg>
+          Dashboard
+        </a>
+        <a href="/system-health">
+          <svg width="16" height="16"><use xlink:href="#health-icon"></use></svg>
+          Monitoramento
+        </a>
+      </div>
+      <div class="user-info">
+        <span>Bem-vindo, Admin</span>
+        <a href="/logout" class="btn btn-outline">
+          <svg width="16" height="16"><use xlink:href="#logout-icon"></use></svg>
+          Sair
+        </a>
+      </div>
+    </div>
+  </nav>
+
+
+
+  <div class="container">
+    <!-- Estatísticas -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-video"></i>
+        </div>
+        <div class="stat-value" id="total-cameras">0</div>
+        <div class="stat-label">Total de Câmeras</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-broadcast-tower"></i>
+        </div>
+        <div class="stat-value" id="active-streams">0</div>
+        <div class="stat-label">Streams Ativos</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-wifi"></i>
+        </div>
+        <div class="stat-value" id="cameras-online">0</div>
+        <div class="stat-label">Câmeras Online</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-value" id="cameras-offline">0</div>
+        <div class="stat-label">Câmeras Offline</div>
+      </div>
+    </div>
+    
+    <!-- Seção de atualização -->
+    <div class="refresh-section">
+      <div class="countdown" id="refresh-countdown">
+        Próxima atualização em: <span id="countdown-value">30</span> segundos
+      </div>
+      <div class="auto-refresh">
+        <label for="auto-refresh-toggle">Auto Refresh:</label>
+        <input type="checkbox" id="auto-refresh-toggle" checked>
+        <button id="refresh-now" class="btn btn-primary btn-sm">
+          <i class="fas fa-sync-alt"></i> Atualizar Agora
+        </button>
+      </div>
+    </div>
+    
+    <!-- Container das câmeras -->
+    <div class="dashboard-container" id="cameras-container">
+      <!-- As câmeras serão carregadas dinamicamente -->
+    </div>
+  </div>
+  
+  <!-- Botão para alternar modo escuro -->
+  <button id="dark-mode-toggle" class="dark-mode-toggle">
+    <i class="fas fa-moon"></i>
+  </button>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const socket = io();
+      const camerasContainer = document.getElementById('cameras-container');
+      const refreshButton = document.getElementById('refresh-now');
+      const autoRefreshToggle = document.getElementById('auto-refresh-toggle');
+      const countdownValue = document.getElementById('countdown-value');
+      const darkModeToggle = document.getElementById('dark-mode-toggle');
+      
+      // Estatísticas
+      const totalCamerasEl = document.getElementById('total-cameras');
+      const activeStreamsEl = document.getElementById('active-streams');
+      const camerasOnlineEl = document.getElementById('cameras-online');
+      const camerasOfflineEl = document.getElementById('cameras-offline');
+      
+      let cameras = [];
+      let countdownInterval;
+      let secondsLeft = 30;
+      
+      // Carregar câmeras
+      loadCameras();
+      
+      // Iniciar contagem regressiva
+      startCountdown();
+      
+      // Adicionar listeners
+      refreshButton.addEventListener('click', function() {
+        loadCameras();
+        resetCountdown();
+      });
+      
+      autoRefreshToggle.addEventListener('change', function() {
+        if (this.checked) {
+          startCountdown();
+        } else {
+          clearInterval(countdownInterval);
+          countdownValue.textContent = '---';
+        }
+      });
+      
+      darkModeToggle.addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        darkModeToggle.innerHTML = isDarkMode ? 
+          '<i class="fas fa-sun"></i>' : 
+          '<i class="fas fa-moon"></i>';
+        
+        // Salvar preferência
+        localStorage.setItem('darkMode', isDarkMode.toString());
+      });
+      
+      // Verificar preferência de modo escuro
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+      }
+      
+      // Funções
+      function loadCameras() {
+        // Fazer requisição para API
+        fetch('/api/cameras')
+          .then(response => response.json())
+          .then(data => {
+            cameras = data.cameras;
+            renderCameras();
+            updateStats();
+          })
+          .catch(error => {
+            console.error('Erro ao carregar câmeras:', error);
+          });
+      }
+      
+      function renderCameras() {
+        camerasContainer.innerHTML = '';
+        
+        if (cameras.length === 0) {
+          camerasContainer.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+              <h3>Nenhuma câmera cadastrada</h3>
+              <p>Clique em "Adicionar Câmera" para começar.</p>
+              <a href="/add_camera" class="btn btn-primary">Adicionar Câmera</a>
+            </div>
+          `;
+          return;
+        }
+        
+        cameras.forEach(camera => {
+          const isOnline = camera.ping !== 'Sem Comunicação';
+          const isStreaming = camera.status && camera.status.running;
+          
+          let statusClass = isOnline ? 'status-online' : 'status-offline';
+          let statusText = isOnline ? 'Online' : 'Offline';
+          let dotClass = isOnline ? 'dot-online' : 'dot-offline';
+          
+          if (isStreaming) {
+            statusClass = 'status-streaming';
+            statusText = 'Streaming';
+            dotClass = 'dot-streaming';
+          }
+          
+          const statusTimestamp = isStreaming ? 
+            `Stream iniciado: ${camera.status.since || 'Desconhecido'}` : 
+            `Última execução: ${camera.status && camera.status.lastRun ? camera.status.lastRun : 'Desconhecida'}`;
+          
+          const card = document.createElement('div');
+          card.className = 'camera-card';
+          card.innerHTML = `
+            <div class="camera-card-header">
+              <h3>${camera.name}</h3>
+              <div class="status-indicator ${statusClass}">
+                <span class="dot ${dotClass}"></span>
+                ${statusText}
+              </div>
+            </div>
+            <div class="camera-card-body">
+              <div class="camera-info">
+                <div class="camera-info-item">
+                  <span class="camera-info-label">Endereço IP:</span>
+                  <span>${camera.ip}</span>
+                </div>
+                <div class="camera-info-item">
+                  <span class="camera-info-label">Ping:</span>
+                  <span>${camera.ping}</span>
+                </div>
+                <div class="camera-info-item">
+                  <span class="camera-info-label">Status:</span>
+                  <span>${camera.status ? camera.status.message : 'Desconhecido'}</span>
+                </div>
+              </div>
+              
+              <div class="status-timestamp">${statusTimestamp}</div>
+              
+              <div class="camera-actions">
+                <div class="action-buttons">
+                  <button class="btn btn-success btn-sm start-stream" data-camera="${camera.name}">
+                    <i class="fas fa-play"></i> Iniciar
+                  </button>
+                  <button class="btn btn-danger btn-sm stop-stream" data-camera="${camera.name}">
+                    <i class="fas fa-stop"></i> Parar
+                  </button>
+                </div>
+                <div class="action-links">
+                  <a href="/view_logs/${camera.name}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-list-alt"></i> Logs
+                  </a>
+                  <a href="/edit_camera/${camera.name}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                  </a>
+                </div>
+              </div>
+              
+              ${camera.chaveyoutube ? `
+                <div class="youtube-id">
+                  <small>YouTube: ${camera.chaveyoutube}</small>
+                </div>
+              ` : ''}
+              
+              ${isStreaming ? `
+                <div class="iframe-container">
+                  <iframe 
+                    src="https://www.youtube.com/embed/${camera.chaveyoutube}?autoplay=1" 
+                    title="${camera.name} - Stream ao vivo" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                  </iframe>
+                </div>
+              ` : ''}
+            </div>
+          `;
+          
+          camerasContainer.appendChild(card);
+          
+          // Adicionar event listeners aos botões
+          const startButton = card.querySelector('.start-stream');
+          const stopButton = card.querySelector('.stop-stream');
+          
+          startButton.addEventListener('click', function() {
+            const cameraName = this.getAttribute('data-camera');
+            startStream(cameraName);
+          });
+          
+          stopButton.addEventListener('click', function() {
+            const cameraName = this.getAttribute('data-camera');
+            stopStream(cameraName);
+          });
+        });
+      }
+      
+      function updateStats() {
+        const total = cameras.length;
+        const online = cameras.filter(c => c.ping !== 'Sem Comunicação').length;
+        const streaming = cameras.filter(c => c.status && c.status.running).length;
+        const offline = total - online;
+        
+        totalCamerasEl.textContent = total;
+        activeStreamsEl.textContent = streaming;
+        camerasOnlineEl.textContent = online;
+        camerasOfflineEl.textContent = offline;
+      }
+      
+      function startStream(cameraName) {
+        fetch(`/api/camera/${cameraName}/start`, {
+          method: 'POST'
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              showMessage(`Stream iniciado para ${cameraName}`, 'success');
+              // Atualizar depois de 3 segundos para dar tempo do status mudar
+              setTimeout(() => {
+                loadCameras();
+              }, 3000);
+            } else {
+              showMessage(`Erro ao iniciar stream: ${data.message}`, 'error');
+            }
+          })
+          .catch(error => {
+            showMessage(`Erro ao iniciar stream: ${error.message}`, 'error');
+          });
+      }
+      
+      function stopStream(cameraName) {
+        fetch(`/api/camera/${cameraName}/stop`, {
+          method: 'POST'
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              showMessage(`Stream parado para ${cameraName}`, 'success');
+              // Atualizar depois de 3 segundos para dar tempo do status mudar
+              setTimeout(() => {
+                loadCameras();
+              }, 3000);
+            } else {
+              showMessage(`Erro ao parar stream: ${data.message}`, 'error');
+            }
+          })
+          .catch(error => {
+            showMessage(`Erro ao parar stream: ${error.message}`, 'error');
+          });
+      }
+      
+      function startCountdown() {
+        // Limpar intervalo existente
+        clearInterval(countdownInterval);
+        secondsLeft = 30;
+        countdownValue.textContent = secondsLeft;
+        
+        countdownInterval = setInterval(function() {
+          secondsLeft--;
+          countdownValue.textContent = secondsLeft;
+          
+          if (secondsLeft <= 0) {
+            loadCameras();
+            secondsLeft = 30;
+          }
+        }, 1000);
+      }
+      
+      function resetCountdown() {
+        if (autoRefreshToggle.checked) {
+          clearInterval(countdownInterval);
+          secondsLeft = 30;
+          countdownValue.textContent = secondsLeft;
+          startCountdown();
+        }
+      }
+      
+      function showMessage(message, type = 'info') {
+        // Criar elemento para a mensagem
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message message-${type}`;
+        messageDiv.textContent = message;
+        
+        // Aplicar estilo
+        messageDiv.style.position = 'fixed';
+        messageDiv.style.top = '20px';
+        messageDiv.style.right = '20px';
+        messageDiv.style.padding = '10px 20px';
+        messageDiv.style.borderRadius = '5px';
+        messageDiv.style.zIndex = '1000';
+        messageDiv.style.transition = 'opacity 0.5s ease';
+        
+        // Definir cor com base no tipo
+        if (type === 'success') {
+          messageDiv.style.backgroundColor = '#2ecc71';
+          messageDiv.style.color = 'white';
+        } else if (type === 'error') {
+          messageDiv.style.backgroundColor = '#e74c3c';
+          messageDiv.style.color = 'white';
+        } else {
+          messageDiv.style.backgroundColor = '#3498db';
+          messageDiv.style.color = 'white';
+        }
+        
+        // Adicionar ao corpo do documento
+        document.body.appendChild(messageDiv);
+        
+        // Remover após alguns segundos
+        setTimeout(function() {
+          messageDiv.style.opacity = '0';
+          setTimeout(function() {
+            document.body.removeChild(messageDiv);
+          }, 500);
+        }, 3000);
+      }
+      
+      // Socket.io event para monitoramento contínuo
+      socket.on('camera_status_update', function(data) {
+        if (data.cameras) {
+          const updatedCameras = data.cameras;
+          let needsRefresh = false;
+          
+          updatedCameras.forEach(updatedCamera => {
+            const existingCamera = cameras.find(c => c.name === updatedCamera.name);
+            if (existingCamera) {
+              // Verificar se houve mudança significativa de status
+              if ((existingCamera.ping === 'Sem Comunicação') !== (updatedCamera.ping === 'Sem Comunicação') ||
+                 (existingCamera.status && updatedCamera.status && 
+                  existingCamera.status.running !== updatedCamera.status.running)) {
+                needsRefresh = true;
+              }
+              
+              // Atualizar informações básicas mesmo sem refresh completo
+              existingCamera.ping = updatedCamera.ping;
+              if (updatedCamera.status) {
+                existingCamera.status = updatedCamera.status;
+              }
+            }
+          });
+          
+          // Atualizar estatísticas
+          updateStats();
+          
+          // Se houve mudança significativa, atualizar UI
+          if (needsRefresh) {
+            renderCameras();
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

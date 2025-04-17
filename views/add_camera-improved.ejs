@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adicionar Câmera - Gerenciador RTSP</title>
+  <link rel="stylesheet" href="/css/improved-style.css">
+</head>
+<body>
+  <!-- SVG Sprite para ícones -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="camera-icon" viewBox="0 0 24 24">
+      <path d="M5 5h-3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2v-12c0-1.1-.9-2-2-2h-3l-1-2h-10l-1 2zm9 13c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5z"/>
+      <circle cx="14" cy="13" r="3"/>
+    </symbol>
+    <symbol id="add-icon" viewBox="0 0 24 24">
+      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+    </symbol>
+    <symbol id="home-icon" viewBox="0 0 24 24">
+      <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+    </symbol>
+    <symbol id="logout-icon" viewBox="0 0 24 24">
+      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+    </symbol>
+    <symbol id="ip-icon" viewBox="0 0 24 24">
+      <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM9 10h2v7H9zm4-3h2v10h-2zm-8 6h2v4H5z"/>
+    </symbol>
+    <symbol id="user-icon" viewBox="0 0 24 24">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </symbol>
+    <symbol id="password-icon" viewBox="0 0 24 24">
+      <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+    </symbol>
+    <symbol id="key-icon" viewBox="0 0 24 24">
+      <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+    </symbol>
+    <symbol id="protocol-icon" viewBox="0 0 24 24">
+      <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/>
+    </symbol>
+    <symbol id="port-icon" viewBox="0 0 24 24">
+      <path d="M17 15h2v2h-2zm0-4h2v2h-2zm0-4h2v2h-2zm-3.9 8.9h-8.2v-1.8h8.2v1.8zm0-4h-8.2v-1.8h8.2v1.8zm0-4h-8.2v-1.8h8.2v1.8z"/>
+    </symbol>
+    <symbol id="youtube-icon" viewBox="0 0 24 24">
+      <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
+    </symbol>
+  </svg>
+
+  <!-- Cabeçalho -->
+  <header class="header">
+    <div class="header-container">
+      <div class="logo">
+        <svg class="logo-icon"><use xlink:href="#camera-icon"></use></svg>
+        <h1>Cameras TwSpeed</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- Barra de navegação -->
+  <nav class="nav">
+    <div class="nav-container">
+      <div class="nav-links">
+        <a href="/">
+          <svg width="16" height="16"><use xlink:href="#home-icon"></use></svg>
+          Início
+        </a>
+        <a href="/add_camera" class="active">
+          <svg width="16" height="16"><use xlink:href="#add-icon"></use></svg>
+          Adicionar Câmera
+        </a>
+      </div>
+      <div class="user-info">
+        <span>Bem-vindo, Admin</span>
+        <a href="/logout" class="btn btn-outline">
+          <svg width="16" height="16"><use xlink:href="#logout-icon"></use></svg>
+          Sair
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="form-container">
+      <h2 class="form-title">Adicionar Nova Câmera</h2>
+      <p class="form-subtitle">Preencha os dados para configurar uma nova câmera RTSP</p>
+      
+      <form action="/add_camera" method="post" id="addCameraForm">
+        <div class="form-group">
+          <label for="nomecamera">
+            <svg width="16" height="16"><use xlink:href="#camera-icon"></use></svg>
+            Nome da Câmera:
+          </label>
+          <input type="text" id="nomecamera" name="nomecamera" class="form-control" required>
+          <div class="form-text">Nome que identifica a câmera (ex: "Av. Principal")</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="ipcamera">
+            <svg width="16" height="16"><use xlink:href="#ip-icon"></use></svg>
+            Endereço IP da Câmera:
+          </label>
+          <input type="text" id="ipcamera" name="ipcamera" class="form-control" required>
+          <div class="form-text">Endereço IP para acesso à câmera (ex: 192.168.1.100)</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="protocolo">
+            <svg width="16" height="16"><use xlink:href="#protocol-icon"></use></svg>
+            Protocolo RTSP:
+          </label>
+          <select id="protocolo" name="protocolo" class="form-control">
+            <option value="tcp">TCP</option>
+            <option value="udp">UDP</option>
+            <option value="http">HTTP</option>
+          </select>
+          <div class="form-text">Protocolo de transporte para o RTSP (TCP recomendado para redes com estabilidade)</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="portartsp">
+            <svg width="16" height="16"><use xlink:href="#port-icon"></use></svg>
+            Porta RTSP:
+          </label>
+          <input type="text" id="portartsp" name="portartsp" class="form-control" value="554">
+          <div class="form-text">Porta padrão é 554 para a maioria das câmeras</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="usuariocamera">
+            <svg width="16" height="16"><use xlink:href="#user-icon"></use></svg>
+            Usuário da Câmera:
+          </label>
+          <input type="text" id="usuariocamera" name="usuariocamera" class="form-control" required>
+          <div class="form-text">Nome de usuário para autenticação na câmera</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="senhacamera">
+            <svg width="16" height="16"><use xlink:href="#password-icon"></use></svg>
+            Senha da Câmera:
+          </label>
+          <input type="password" id="senhacamera" name="senhacamera" class="form-control" required>
+          <div class="form-text">Senha para autenticação na câmera</div>
+          <div class="show-password" style="margin-top: 8px;">
+            <input type="checkbox" id="showPassword">
+            <label for="showPassword" style="display: inline; font-weight: normal;">Mostrar senha</label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="chaveyoutube">
+            <svg width="16" height="16"><use xlink:href="#key-icon"></use></svg>
+            Chave de Stream do YouTube:
+          </label>
+          <input type="text" id="chaveyoutube" name="chaveyoutube" class="form-control" required>
+          <div class="form-text">Chave para transmissão ao vivo no YouTube</div>
+        </div>
+        
+        <!-- Novo campo para o link do YouTube -->
+        <div class="form-group">
+          <label for="linkyoutube">
+            <svg width="16" height="16"><use xlink:href="#youtube-icon"></use></svg>
+            Link de Incorporação do YouTube:
+          </label>
+          <input type="text" id="linkyoutube" name="linkyoutube" class="form-control">
+          <div class="form-text">Link para incorporar o stream na página principal (ex: https://www.youtube.com/embed/XXXXXXXX)</div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg width="16" height="16"><use xlink:href="#add-icon"></use></svg>
+            Adicionar Câmera
+          </button>
+          <a href="/" class="btn btn-outline">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Rodapé -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-text">
+        &copy; <%= new Date().getFullYear() %> TwSpeed Telecom - Sistema de Gerenciamento de Câmeras RTSP
+      </div>
+      <div class="footer-links">
+        <a href="/">Início</a>
+        <a href="/add_camera">Adicionar Câmera</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Validação do formulário
+    document.addEventListener('DOMContentLoaded', function() {
+      // Toggle para mostrar/ocultar senha
+      const showPasswordCheckbox = document.getElementById('showPassword');
+      const senhaInput = document.getElementById('senhacamera');
+      
+      if (showPasswordCheckbox && senhaInput) {
+        showPasswordCheckbox.addEventListener('change', function() {
+          senhaInput.type = this.checked ? 'text' : 'password';
+        });
+      }
+      
+      // Validar formulário
+      const form = document.getElementById('addCameraForm');
+      if (form) {
+        form.addEventListener('submit', function(event) {
+          const ipInput = document.getElementById('ipcamera');
+          const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+          
+          if (!ipPattern.test(ipInput.value)) {
+            event.preventDefault();
+            alert('Por favor, insira um endereço IP válido no formato xxx.xxx.xxx.xxx');
+            ipInput.focus();
+            return false;
+          }
+          
+           // Verificar se cada octeto está entre 0 e 255
+           const octetos = ipInput.value.split('.');
+          for (const octeto of octetos) {
+            const num = parseInt(octeto, 10);
+            if (num < 0 || num > 255) {
+              event.preventDefault();
+              alert('Cada octeto do IP deve estar entre 0 e 255.');
+              ipInput.focus();
+              return false;
+            }
+          }
+          
+          const portInput = document.getElementById('portartsp');
+          const port = parseInt(portInput.value, 10);
+          if (isNaN(port) || port < 1 || port > 65535) {
+            event.preventDefault();
+            alert('Por favor, insira um número de porta válido (1-65535).');
+            portInput.focus();
+            return false;
+          }
+          
+          // Validar link do YouTube se fornecido
+          const linkYoutubeInput = document.getElementById('linkyoutube');
+          if (linkYoutubeInput.value && !linkYoutubeInput.value.includes('youtube.com/embed/')) {
+            event.preventDefault();
+            alert('O link do YouTube deve ser um link de incorporação (embed) válido.\nExemplo: https://www.youtube.com/embed/XXXXXXXX');
+            linkYoutubeInput.focus();
+            return false;
+          }
+          
+          return true;
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+

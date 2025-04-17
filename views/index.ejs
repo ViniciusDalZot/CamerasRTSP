@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador de Câmeras RTSP</title>
+  <link rel="stylesheet" href="/css/improved-style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+  <!-- SVG Sprite para ícones -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="camera-icon" viewBox="0 0 24 24">
+      <path d="M5 5h-3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2v-12c0-1.1-.9-2-2-2h-3l-1-2h-10l-1 2zm9 13c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5z"/>
+      <circle cx="14" cy="13" r="3"/>
+    </symbol>
+    <symbol id="play-icon" viewBox="0 0 24 24">
+      <path d="M8 5v14l11-7z"/>
+    </symbol>
+    <symbol id="stop-icon" viewBox="0 0 24 24">
+      <path d="M6 6h12v12H6z"/>
+    </symbol>
+    <symbol id="edit-icon" viewBox="0 0 24 24">
+      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+    </symbol>
+    <symbol id="log-icon" viewBox="0 0 24 24">
+      <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+    </symbol>
+    <symbol id="delete-icon" viewBox="0 0 24 24">
+      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+    </symbol>
+    <symbol id="ip-icon" viewBox="0 0 24 24">
+      <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM9 10h2v7H9zm4-3h2v10h-2zm-8 6h2v4H5z"/>
+    </symbol>
+    <symbol id="user-icon" viewBox="0 0 24 24">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </symbol>
+    <symbol id="signal-icon" viewBox="0 0 24 24">
+      <path d="M2 22h20V2z"/>
+    </symbol>
+    <symbol id="location-icon" viewBox="0 0 24 24">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </symbol>
+    <symbol id="add-icon" viewBox="0 0 24 24">
+      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+    </symbol>
+    <symbol id="logout-icon" viewBox="0 0 24 24">
+      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+    </symbol>
+    <symbol id="youtube-icon" viewBox="0 0 24 24">
+      <path d="M10 15L15 12L10 9V15Z"/>
+      <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V6H20V18Z"/>
+    </symbol>
+    <symbol id="health-icon" viewBox="0 0 24 24">
+      <path d="M12 2C8.43 2 5.23 3.54 3.01 6L12 22l8.99-16C18.78 3.55 15.57 2 12 2zm0 15.92L5.51 6.36C7.32 4.85 9.62 4 12 4s4.68.85 6.49 2.36L12 17.92z"/>
+    </symbol>
+    <symbol id="server-icon" viewBox="0 0 24 24">
+      <path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/>
+    </symbol>
+    <symbol id="dashboard-icon" viewBox="0 0 24 24">
+      <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+    </symbol>
+  </svg>
+
+  <!-- Cabeçalho -->
+  <header class="header">
+    <div class="header-container">
+      <div class="logo">
+        <svg class="logo-icon"><use xlink:href="#camera-icon"></use></svg>
+        <h1>RTSP Camera Manager</h1>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Barra de navegação -->
+  <nav class="nav">
+    <div class="nav-container">
+      <div class="nav-links">
+        <a href="/" class="active">
+          <svg width="16" height="16"><use xlink:href="#camera-icon"></use></svg>
+          Câmeras
+        </a>
+        <a href="/add_camera">
+          <svg width="16" height="16"><use xlink:href="#add-icon"></use></svg>
+          Adicionar Câmera
+        </a>
+        <a href="/dashboard">
+          <svg width="16" height="16"><use xlink:href="#dashboard-icon"></use></svg>
+          Dashboard
+        </a>
+        <a href="/system-health">
+          <svg width="16" height="16"><use xlink:href="#health-icon"></use></svg>
+          Monitoramento
+        </a>
+      </div>
+      <div class="user-info">
+        <span>Bem-vindo, Admin</span>
+        <a href="/logout" class="btn btn-outline">
+          <svg width="16" height="16"><use xlink:href="#logout-icon"></use></svg>
+          Sair
+        </a>
+      </div>
+    </div>
+  </nav>
+  
+  <div class="container">
+    <!-- Estatísticas -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-video"></i>
+        </div>
+        <div class="stat-value" id="total-cameras">0</div>
+        <div class="stat-label">Total de Câmeras</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-broadcast-tower"></i>
+        </div>
+        <div class="stat-value" id="active-streams">0</div>
+        <div class="stat-label">Streams Ativos</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-wifi"></i>
+        </div>
+        <div class="stat-value" id="cameras-online">0</div>
+        <div class="stat-label">Câmeras Online</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-value" id="cameras-offline">0</div>
+        <div class="stat-label">Câmeras Offline</div>
+      </div>
+    </div>
+    
+    <!-- Seção de câmeras ativas -->
+    <h2 class="section-title">
+      <svg><use xlink:href="#camera-icon"></use></svg>
+      Câmeras Configuradas
+    </h2>
+    <p class="section-subtitle">
+      Gerencie suas câmeras RTSP e transmissões para o YouTube
+    </p>
+    
+    <% if (cameras.length === 0) { %>
+      <div style="text-align: center; padding: 3rem 0;">
+        <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+          Nenhuma câmera cadastrada ainda.
+        </p>
+        <a href="/add_camera" class="btn btn-primary" style="max-width: 200px; margin: 0 auto;">
+          <svg><use xlink:href="#add-icon"></use></svg>
+          Adicionar Câmera
+        </a>
+      </div>
+    <% } else { %>
+      <div class="camera-cards">
+        <% cameras.forEach(function(camera) { %>
+          <div class="camera-card">
+            <div class="camera-card-header">
+              <h2><%= camera.name %></h2>
+              <div class="camera-card-status status-<%= camera.ping === 'Sem Comunicação' ? 'offline' : 'online' %>">
+                <span class="status-indicator"></span>
+                <%= camera.ping === 'Sem Comunicação' ? 'Offline' : 'Online' %>
+              </div>
+            </div>
+            
+            <div class="camera-card-content">
+              <div class="camera-info">
+                <div class="camera-info-item">
+                  <div class="camera-info-label">
+                    <svg width="16" height="16"><use xlink:href="#ip-icon"></use></svg>
+                    Endereço IP
+                  </div>
+                  <div class="camera-info-value"><%= camera.ip %></div>
+                </div>
+                <div class="camera-info-item">
+                  <div class="camera-info-label">
+                    <svg width="16" height="16"><use xlink:href="#user-icon"></use></svg>
+                    Usuário
+                  </div>
+                  <div class="camera-info-value"><%= camera.usuario %></div>
+                </div>
+                <div class="camera-info-item">
+                  <div class="camera-info-label">
+                    <svg width="16" height="16"><use xlink:href="#signal-icon"></use></svg>
+                    Ping
+                  </div>
+                  <div class="camera-info-value"><%= camera.ping %></div>
+                </div>
+              </div>
+              
+              <div class="camera-actions">
+                <div class="action-buttons">
+                  <form action="/start_stream/<%= camera.name %>" method="post">
+                    <button type="submit" class="btn btn-success">
+                      <svg><use xlink:href="#play-icon"></use></svg>
+                      Iniciar Stream
+                    </button>
+                  </form>
+                  
+                  <form action="/stop_stream/<%= camera.name %>" method="post">
+                    <button type="submit" class="btn btn-danger">
+                      <svg><use xlink:href="#stop-icon"></use></svg>
+                      Parar Stream
+                    </button>
+                  </form>
+                </div>
+                
+                <div class="camera-links">
+                  <div class="camera-links-left">
+                    <a href="/view_logs/<%= camera.name %>" class="link">
+                      <svg><use xlink:href="#log-icon"></use></svg>
+                      Ver Logs
+                    </a>
+                    <a href="/edit_camera/<%= camera.name %>" class="link">
+                      <svg><use xlink:href="#edit-icon"></use></svg>
+                      Editar
+                    </a>
+                  </div>
+                  
+                  <form action="/remove_camera/<%= camera.name %>" method="post" onsubmit="return confirm('Tem certeza que deseja remover esta câmera?');">
+                    <button type="submit" class="btn-link" title="Remover câmera">
+                      <svg width="16" height="16"><use xlink:href="#delete-icon"></use></svg>
+                      Remover
+                    </button>
+                  </form>
+                </div>
+              </div>
+              
+              <% if (camera.chaveyoutube) { %>
+                <div class="youtube-id">
+                  <small>YouTube: <%= camera.chaveyoutube %></small>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+    
+   <!-- Seção de streams ao vivo -->
+<div class="youtube-streams-section">
+  <h2 class="section-title">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 15L15 12L10 9V15Z" fill="currentColor"/>
+      <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V6H20V18Z" fill="currentColor"/>
+    </svg>
+    Streams ao Vivo
+  </h2>
+  
+  <div class="youtube-streams-container">
+    <% cameras.forEach(function(camera) { %>
+      <% if (camera.youtubeLink && camera.youtubeLink.trim() !== '') { %>
+        <div class="youtube-stream-card">
+          <h3 class="stream-title"><%= camera.name %></h3>
+          <div class="stream-wrapper">
+            <iframe 
+              src="<%= camera.youtubeLink %>?autoplay=1"
+              title="<%= camera.name %> - Câmera ao Vivo" 
+              class="stream-iframe"
+              allow="accelerometer; autoplay=1; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin" 
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+      <% } %>
+    <% }); %>
+    
+    <% if (!cameras.some(camera => camera.youtubeLink && camera.youtubeLink.trim() !== '')) { %>
+      <div class="no-streams-message">
+        <p>Nenhum stream configurado. Adicione câmeras com links do YouTube para visualizar streams ao vivo.</p>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+    
+    <!-- Seção de monitoramento do sistema -->
+    <h2 class="section-title">
+      <svg><use xlink:href="#health-icon"></use></svg>
+      Status do Sistema
+    </h2>
+    <p class="section-subtitle">
+      Visão geral da saúde do sistema
+    </p>
+    
+    <div class="system-health-summary">
+      <div class="system-health-card">
+        <div class="system-health-header">
+          <h3>
+            <i class="fas fa-microchip"></i>
+            CPU
+          </h3>
+          <div id="cpu-status" class="status-badge status-good">Bom</div>
+        </div>
+        <div class="system-health-body">
+          <div class="progress-container">
+            <div id="cpu-progress" class="progress-bar" style="width: 0%"></div>
+          </div>
+          <div class="system-health-info">
+            <span id="cpu-usage">Carregando...</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="system-health-card">
+        <div class="system-health-header">
+          <h3>
+            <i class="fas fa-memory"></i>
+            Memória
+          </h3>
+          <div id="memory-status" class="status-badge status-good">Bom</div>
+        </div>
+        <div class="system-health-body">
+          <div class="progress-container">
+            <div id="memory-progress" class="progress-bar" style="width: 0%"></div>
+          </div>
+          <div class="system-health-info">
+            <span id="memory-usage">Carregando...</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="system-health-card">
+        <div class="system-health-header">
+          <h3>
+            <i class="fas fa-hdd"></i>
+            Disco
+          </h3>
+          <div id="disk-status" class="status-badge status-good">Bom</div>
+        </div>
+        <div class="system-health-body">
+          <div class="progress-container">
+            <div id="disk-progress" class="progress-bar" style="width: 0%"></div>
+          </div>
+          <div class="system-health-info">
+            <span id="disk-usage">Carregando...</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="system-health-card">
+        <div class="system-health-header">
+          <h3>
+            <i class="fas fa-server"></i>
+            Sistema
+          </h3>
+          <div id="system-status" class="status-badge status-good">Ativo</div>
+        </div>
+        <div class="system-health-body">
+          <div class="system-health-info">
+            <span id="system-uptime">Carregando...</span>
+          </div>
+          <div class="system-health-link">
+            <a href="/system-health" class="link">
+              <i class="fas fa-chart-line"></i>
+              Ver detalhes completos
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Problemas do sistema -->
+    <div id="system-issues-container" class="system-issues-container" style="display: none;">
+      <h3>
+        <i class="fas fa-exclamation-triangle"></i>
+        Problemas Detectados
+      </h3>
+      <div id="system-issues-list" class="system-issues-list"></div>
+    </div>
+  </div>
+  
+  <!-- JavaScript para atualização em tempo real dos status das câmeras e saúde do sistema -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const socket = io();
+      
+      // Atualizar status das câmeras a cada 30 segundos
+      setInterval(() => {
+        socket.emit('monitor_cameras');
+        loadSystemHealth();
+      }, 30000);
+      
+      // Carregar status do sistema imediatamente
+      loadSystemHealth();
+      
+      // Receber atualizações de status das câmeras
+      socket.on('camera_status_update', function(data) {
+        if (!data || !data.cameras) return;
+        
+        const cameras = data.cameras;
+        
+        // Atualizar valores estatísticos
+        document.getElementById('total-cameras').textContent = cameras.length;
+        document.getElementById('cameras-online').textContent = cameras.filter(c => c.ping !== 'Sem Comunicação').length;
+        document.getElementById('cameras-offline').textContent = cameras.filter(c => c.ping === 'Sem Comunicação').length;
+        document.getElementById('active-streams').textContent = cameras.filter(c => c.status && c.status.running).length || 0;
+        
+        // Atualizar status de cada câmera
+        cameras.forEach(camera => {
+          // Encontrar o card da câmera correspondente
+          document.querySelectorAll('.camera-card h2').forEach(element => {
+            if (element.textContent === camera.name) {
+              const cardElement = element.closest('.camera-card');
+              if (cardElement) {
+                const statusElement = cardElement.querySelector('.camera-card-status');
+                const pingElement = cardElement.querySelector('.camera-info-item:nth-child(3) .camera-info-value');
+                
+                if (camera.ping === 'Sem Comunicação') {
+                  statusElement.innerHTML = '<span class="status-indicator"></span> Offline';
+                  statusElement.className = 'camera-card-status status-offline';
+                } else {
+                  statusElement.innerHTML = '<span class="status-indicator"></span> Online';
+                  statusElement.className = 'camera-card-status status-online';
+                }
+                
+                if (pingElement) {
+                  pingElement.textContent = camera.ping;
+                }
+              }
+            }
+          });
+        });
+      });
+      
+      // Função para carregar dados de saúde do sistema
+      function loadSystemHealth() {
+        fetch('/api/health/system')
+          .then(response => response.json())
+          .then(data => {
+            updateSystemHealth(data);
+          })
+          .catch(error => {
+            console.error('Erro ao carregar status do sistema:', error);
+          });
+        
+        // Verificar problemas do sistema
+        fetch('/api/health/issues')
+          .then(response => response.json())
+          .then(data => {
+            updateSystemIssues(data.issues);
+          })
+          .catch(error => {
+            console.error('Erro ao verificar problemas do sistema:', error);
+          });
+      }
+      
+      // Atualizar indicadores de saúde do sistema
+      function updateSystemHealth(data) {
+        // Atualizar CPU
+        if (data.cpu) {
+          const cpuUsage = data.cpu.usage.toFixed(1);
+          document.getElementById('cpu-usage').textContent = `${cpuUsage}% em uso`;
+          
+          const cpuProgress = document.getElementById('cpu-progress');
+          cpuProgress.style.width = `${cpuUsage}%`;
+          
+          const cpuStatus = document.getElementById('cpu-status');
+          if (cpuUsage > 90) {
+            cpuProgress.className = 'progress-bar progress-bar-danger';
+            cpuStatus.className = 'status-badge status-critical';
+            cpuStatus.textContent = 'Crítico';
+          } else if (cpuUsage > 70) {
+            cpuProgress.className = 'progress-bar progress-bar-warning';
+            cpuStatus.className = 'status-badge status-warning';
+            cpuStatus.textContent = 'Atenção';
+          } else {
+            cpuProgress.className = 'progress-bar';
+            cpuStatus.className = 'status-badge status-good';
+            cpuStatus.textContent = 'Bom';
+          }
+        }
+        
+        // Atualizar Memória
+        if (data.memory) {
+          const memUsage = parseFloat(data.memory.usedPercentage);
+          document.getElementById('memory-usage').textContent = `${data.memory.used} de ${data.memory.total} (${memUsage}%)`;
+          
+          const memProgress = document.getElementById('memory-progress');
+          memProgress.style.width = `${memUsage}%`;
+          
+          const memStatus = document.getElementById('memory-status');
+          if (memUsage > 90) {
+            memProgress.className = 'progress-bar progress-bar-danger';
+            memStatus.className = 'status-badge status-critical';
+            memStatus.textContent = 'Crítico';
+          } else if (memUsage > 70) {
+            memProgress.className = 'progress-bar progress-bar-warning';
+            memStatus.className = 'status-badge status-warning';
+            memStatus.textContent = 'Atenção';
+          } else {
+            memProgress.className = 'progress-bar';
+            memStatus.className = 'status-badge status-good';
+            memStatus.textContent = 'Bom';
+          }
+        }
+        
+        // Atualizar Disco
+        if (data.disk) {
+          const diskUsage = parseInt(data.disk.usedPercentage || '0');
+          document.getElementById('disk-usage').textContent = `${data.disk.used} de ${data.disk.size} (${data.disk.usedPercentage})`;
+          
+          const diskProgress = document.getElementById('disk-progress');
+          diskProgress.style.width = `${diskUsage}%`;
+          
+          const diskStatus = document.getElementById('disk-status');
+          if (diskUsage > 90) {
+            diskProgress.className = 'progress-bar progress-bar-danger';
+            diskStatus.className = 'status-badge status-critical';
+            diskStatus.textContent = 'Crítico';
+          } else if (diskUsage > 70) {
+            diskProgress.className = 'progress-bar progress-bar-warning';
+            diskStatus.className = 'status-badge status-warning';
+            diskStatus.textContent = 'Atenção';
+          } else {
+            diskProgress.className = 'progress-bar';
+            diskStatus.className = 'status-badge status-good';
+            diskStatus.textContent = 'Bom';
+          }
+        }
+        
+        // Atualizar informações do sistema
+        if (data.uptime) {
+          document.getElementById('system-uptime').textContent = `Ativo há ${formatUptime(data.uptime)}`;
+        }
+      }
+      
+      // Atualizar problemas do sistema
+      function updateSystemIssues(issues) {
+        const container = document.getElementById('system-issues-container');
+        const listElement = document.getElementById('system-issues-list');
+        
+        if (!issues || issues.length === 0) {
+          container.style.display = 'none';
+          return;
+        }
+        
+        container.style.display = 'block';
+        listElement.innerHTML = '';
+        
+        issues.forEach(issue => {
+          const issueElement = document.createElement('div');
+          issueElement.className = `system-issue system-issue-${issue.type}`;
+          
+          issueElement.innerHTML = `
+            <div class="issue-icon">
+              <i class="fas fa-${issue.type === 'critical' ? 'exclamation-circle' : 'exclamation-triangle'}"></i>
+            </div>
+            <div class="issue-content">
+              <div class="issue-message">${issue.message}</div>
+              <div class="issue-component">${issue.component}${issue.camera ? ` - Câmera: ${issue.camera}` : ''}</div>
+            </div>
+          `;
+          
+          listElement.appendChild(issueElement);
+        });
+      }
+      
+      // Formatar tempo de atividade
+      function formatUptime(seconds) {
+        const days = Math.floor(seconds / (3600 * 24));
+        const hours = Math.floor((seconds % (3600 * 24)) / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        
+        const parts = [];
+        if (days > 0) parts.push(`${days} dia${days > 1 ? 's' : ''}`);
+        if (hours > 0) parts.push(`${hours} hora${hours > 1 ? 's' : ''}`);
+        if (minutes > 0) parts.push(`${minutes} minuto${minutes > 1 ? 's' : ''}`);
+        
+        return parts.join(', ');
+      }
+    });
+  </script>
+</body>
+</html>
